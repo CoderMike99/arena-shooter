@@ -1,0 +1,5 @@
+{
+  "_comment": "Sagt Pylance dass Imports ab dem Projektroot gesucht werden",
+  "pythonPath": ".",
+  "include": ["."]
+}
