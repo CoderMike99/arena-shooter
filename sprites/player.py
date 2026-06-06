@@ -3,10 +3,12 @@ from settings import WINDOW_HEIGHT, WINDOW_WIDTH, PLAYER_SIZE
 from utils import apply_deadzone
 
 class Player:
-    def __init__(self, x_position, y_position, controls, health_points, max_health_points, armor, size=PLAYER_SIZE, color=(255, 0, 0)):
+    def __init__(self, x_position, y_position, controls, health_points, max_health_points, armor, max_projectile_count=1, size=PLAYER_SIZE, color=(255, 0, 0)):
         self.health_points = health_points
         self.max_health_points = max_health_points
         self.armor = armor
+        self.max_projectile_count = max_projectile_count
+        self.current_projectile_count = 0
         self.size = size
         self.color = color
         self.controls = controls
