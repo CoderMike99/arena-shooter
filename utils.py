@@ -31,3 +31,19 @@ def apply_deadzone(value, deadzone=0.1):
     sign = 1 if value > 0 else -1
     return sign * (abs(value) - deadzone) / (1.0 - deadzone)
 
+# f(0) = 0, f(duration) = 1
+def dash_sigmoid(t, duration):
+    x = (t / duration - 0.5) * 10
+    return 1 / (1 + math.exp(-x))
+
+
+
+""" def dash_delta(t, duration):
+    return dash_sigmoid(t, duration) - dash_sigmoid(t-1, duration) """
+
+def dash_rush_from(t, duration):
+    x = t / duration  # normalisiert auf [0, 1]
+    return 1 - (1 - x) ** 3  # kubisch rush-from
+
+def dash_delta(t, duration):
+    return dash_rush_from(t, duration) - dash_rush_from(t-1, duration)

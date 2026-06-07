@@ -45,6 +45,7 @@ while running:
     
     
     player1.current_projectile_count = len([p for p in projectiles if p.faction == "player"])
+    player1_input_state = {"dash_pressed": False}
 
     for event in pygame.event.get():
         if event.type == pygame.JOYBUTTONDOWN and event.button == 7:
@@ -60,6 +61,9 @@ while running:
                     print(event.button)
 
         if state == "playing":        
+                if event.type == pygame.JOYBUTTONDOWN and event.button == 2:
+                    player1_input_state["dash_pressed"] = True
+
                 if event.type == pygame.JOYBUTTONDOWN and event.button == 5:
                     direction = joystick_direction(joystick)
                     if direction is not None and player1.current_projectile_count < player1.max_projectile_count:
@@ -80,6 +84,7 @@ while running:
         # Input
         keys = pygame.key.get_pressed()
         player1.move(keys, joystick)
+        player1.update(player1_input_state, joystick)
 
         # Neue Projektile erzeugen
         for enemy in enemies:
@@ -108,8 +113,6 @@ while running:
         enemies = [enemy for enemy in enemies if enemy.update(player1.getPosition())]    
         kills -= len(enemies)
         score += kills
-
-        #shooter_projectiles = [p for p in projectiles if p.update()]
 
         
         # Zeichnen
