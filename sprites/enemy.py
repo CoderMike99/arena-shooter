@@ -1,48 +1,19 @@
 import pygame
 import random
+from sprites.entity import Entity
 from sprites.projectile import Projectile
 from abc import ABC, abstractmethod
 from settings import *
 from utils import direction_to
 
-class Enemy(ABC):
-    def __init__(self, health_points, max_health_points, armor, speed, size, color=(60,195,97)):
-        self.health_points = health_points
-        self.max_health_points = max_health_points
-        self.armor = armor
-        self.speed = float(speed)
-        self.size = size
-        self.color = color
-        self.hitbox = pygame.Rect(0, 0, self.size, self.size)
-    
-    def take_damage(self, amount):
-        self.health_points -= max(0, amount - self.armor)
-    
-
-    def draw_health_bar(self, screen):
-        bar_width = self.hitbox.width + 10
-        bar_height = 6
-        bar_x = self.hitbox.centerx - bar_width // 2
-        bar_y = self.hitbox.top - 10  # 10px über dem Enemy
-        
-        hp_percent = self.health_points / self.max_health_points
-
-        if hp_percent > 0.8:
-            color = (34, 139, 34)    # dunkelgrün
-        elif hp_percent > 0.6:
-            color = (154, 205, 50)   # hellgrün
-        elif hp_percent > 0.4:
-            color = (255, 255, 0)    # gelb
-        elif hp_percent > 0.2:
-            color = (255, 165, 0)    # orange
-        else:
-            color = (139, 0, 0)      # dunkelrot
-
-        health_bar_background = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
-        health_bar_fill = pygame.Rect(bar_x, bar_y, bar_width * hp_percent, bar_height)
-        
-        pygame.draw.rect(screen, (0,0,0), health_bar_background)
-        pygame.draw.rect(screen, color, health_bar_fill)
+class Enemy(Entity):
+    def __init__(self, health_points, max_health_points, armor, speed, size, color):
+        super().__init__(health_points=health_points,
+                         max_health_points=max_health_points,
+                         armor=armor,
+                         speed=speed,
+                         size=size,
+                         color=color)
 
     @staticmethod
     def get_random_spawn_position(size=0) -> pygame.math.Vector2:
@@ -59,14 +30,7 @@ class Enemy(ABC):
                 return pygame.math.Vector2(random.randint(0, WINDOW_WIDTH), WINDOW_HEIGHT + size // 2)
             case default:
                 return pygame.math.Vector2(0,0)
-            
-    @abstractmethod
-    def draw(self, screen) -> None:
-        pass
-
-    @abstractmethod
-    def update(self, player_pos: pygame.math.Vector2):
-        pass
+        
 
 
 class Chaser(Enemy):
