@@ -3,7 +3,8 @@ import random
 from sprites.player import Player
 from sprites.projectile import Projectile
 from sprites.enemy import Enemy, Chaser, Shooter
-from ui import draw_text
+from ui.ui import draw_text
+from ui.damage_number import DamageNumber
 from settings import *
 from utils import *
 from spawn_manager import SpawnManager
@@ -32,9 +33,11 @@ print(joystick)
 
 projectiles = []
 enemies: list[Enemy] = []
+damage_numbers: list[DamageNumber] = []
 game_time = 0
 
 font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 20)
+dmg_number_font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 10)
 debug_font = pygame.font.SysFont("Courier New", 14)
 
 state = "playing"
@@ -67,7 +70,7 @@ while running:
                 if event.type == pygame.JOYBUTTONDOWN and event.button == 5:
                     direction = joystick_direction(joystick)
                     if direction is not None and player1.current_projectile_count < player1.max_projectile_count:
-                        projectiles.append(Projectile(*player1.getPosition(), velocity=direction, faction="player", damage=player1.damage, color=(255,165,0)))
+                        projectiles.append(Projectile(player1.getPosition(), velocity=direction, faction="player", damage=player1.damage, color=(255,165,0)))
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
                     enemies.append(Chaser())
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
@@ -103,10 +106,12 @@ while running:
                 if target.hitbox.colliderect(projectile.hitbox):
                     projectile.piercing -= 1
                     target.take_damage(projectile.damage)
+                    damage_numbers.append(DamageNumber(font=dmg_number_font, position=target.position, number=projectile.damage-target.armor))
 
         
 
         projectiles = [p for p in projectiles if p.update()]
+        damage_numbers = [number for number in damage_numbers if number.update()]
 
         # Tracking kills by adding length difference of active enemies
         kills = len(enemies)
@@ -136,6 +141,9 @@ while running:
         for p in projectiles:
             p.draw(screen)
         
+        for number in damage_numbers:
+            number.draw(screen)
+
         # Neuer Frame
     
     

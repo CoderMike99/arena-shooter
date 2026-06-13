@@ -5,7 +5,7 @@ from settings import *
 from utils import direction_to
 
 class Entity(ABC):
-    def __init__(self, health_points, max_health_points, damage, armor, speed, size, color):
+    def __init__(self, health_points, max_health_points, position,  damage, armor, speed, size, color):
         self.health_points = health_points
         self.max_health_points = max_health_points
         self.damage = damage
@@ -13,8 +13,9 @@ class Entity(ABC):
         self.speed = float(speed)
         self.size = size
         self.color = color
+        self.position = position
         self.hitbox = pygame.Rect(0, 0, self.size, self.size)
-        self.pos = pygame.math.Vector2(0, 0)
+        self.hitbox.center = self.position
         
     
     def take_damage(self, amount):

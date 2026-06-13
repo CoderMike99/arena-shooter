@@ -6,8 +6,7 @@ from utils import normalize_vector, apply_deadzone, dash_delta
 class Player(Entity):
     def __init__(self, 
                  controls,
-                 x_position=WINDOW_WIDTH // 2,
-                 y_position=WINDOW_HEIGHT // 2,
+                 position=pygame.math.Vector2(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2),
                  damage = PLAYER_DAMAGE, 
                  health_points=PLAYER_MAX_HEALTH_POINTS, 
                  max_health_points=PLAYER_MAX_HEALTH_POINTS, 
@@ -18,6 +17,7 @@ class Player(Entity):
         super().__init__(damage=damage,
                          health_points=health_points,
                          max_health_points=max_health_points,
+                         position=position,
                          armor=armor,
                          speed=speed,
                          size=size,
@@ -27,8 +27,8 @@ class Player(Entity):
         self.max_projectile_count = max_projectile_count
         self.current_projectile_count = 0
         self.controls = controls
-        self.pos = pygame.math.Vector2(x_position, y_position)
-        self.hitbox = pygame.Rect(self.pos.x, self.pos.y, size, size)
+        self.position = position
+        self.hitbox = pygame.Rect(self.position.x, self.position.y, size, size)
         
 
         # Abilities
@@ -40,7 +40,7 @@ class Player(Entity):
 
     
     def update(self, input_state: dict, joystick=None):
-        self.hitbox.center = self.pos
+        self.hitbox.center = self.position
         
         if self.dash_cooldown_remaining > 0:
             self.dash_cooldown_remaining -= 1
@@ -62,21 +62,21 @@ class Player(Entity):
         self.draw_health_bar(screen)
 
     def move(self, keys, joystick=None):
-        if keys[self.controls["right"]] and self.pos.x < WINDOW_WIDTH - self.size:
-            self.pos.x += 5
-        if keys[self.controls["left"]] and self.pos.x > 0:
-            self.pos.x -= 5
-        if keys[self.controls["up"]] and self.pos.y > 0:
-            self.pos.y -= 5
-        if keys[self.controls["down"]] and self.pos.y < WINDOW_HEIGHT - self.size:
-            self.pos.y += 5
+        if keys[self.controls["right"]] and self.position.x < WINDOW_WIDTH - self.size:
+            self.position.x += 5
+        if keys[self.controls["left"]] and self.position.x > 0:
+            self.position.x -= 5
+        if keys[self.controls["up"]] and self.position.y > 0:
+            self.position.y -= 5
+        if keys[self.controls["down"]] and self.position.y < WINDOW_HEIGHT - self.size:
+            self.position.y += 5
 
         if joystick and (self.dash_progress >= DASH_DURATION * 0.3 or not self.dash_active):
             axis_x = apply_deadzone(joystick.get_axis(0))
             axis_y = apply_deadzone(joystick.get_axis(1))
 
-            self.pos.x = max(0, min(self.pos.x + round(axis_x * self.speed), WINDOW_WIDTH - self.size))
-            self.pos.y = max(0, min(self.pos.y + round(axis_y * self.speed), WINDOW_HEIGHT - self.size))
+            self.position.x = max(0, min(self.position.x + round(axis_x * self.speed), WINDOW_WIDTH - self.size))
+            self.position.y = max(0, min(self.position.y + round(axis_y * self.speed), WINDOW_HEIGHT - self.size))
 
 
     def dash(self, joystick=None):
@@ -89,7 +89,7 @@ class Player(Entity):
         # Change position and continue progress
         if self.dash_active:
             step = self.dash_direction * dash_delta(self.dash_progress, DASH_DURATION) * DASH_RANGE
-            self.pos += step
+            self.position += step
             self.dash_progress += 1
 
         # Reset flag and timer at last frame of dash

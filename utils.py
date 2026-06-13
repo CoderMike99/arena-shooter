@@ -36,14 +36,21 @@ def dash_sigmoid(t, duration):
     x = (t / duration - 0.5) * 10
     return 1 / (1 + math.exp(-x))
 
+def dash_curve(t, duration, steepness=3):
+    x = t / duration
+    return (1 - math.exp(-steepness * x)) / (1 - math.exp(-steepness))
 
-
-""" def dash_delta(t, duration):
-    return dash_sigmoid(t, duration) - dash_sigmoid(t-1, duration) """
 
 def dash_rush_from(t, duration):
     x = t / duration  # normalisiert auf [0, 1]
     return 1 - (1 - x) ** 3  # kubisch rush-from
 
+def dash_ease_out_exp(t, duration):
+    x = t / duration
+    return 1 - math.exp(-5 * x)  # 5 kontrolliert wie schnell es abfällt
+
 def dash_delta(t, duration):
-    return dash_rush_from(t, duration) - dash_rush_from(t-1, duration)
+    return dash_curve(t, duration) - dash_curve(t-1, duration)
+    #return dash_ease_out_exp(t, duration) - dash_ease_out_exp(t-1, duration)
+    #return dash_linear(t, duration) - dash_linear(t-1, duration)
+    #return dash_rush_from(t, duration) - dash_rush_from(t-1, duration)

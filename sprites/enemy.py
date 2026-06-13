@@ -7,10 +7,11 @@ from settings import *
 from utils import direction_to
 
 class Enemy(Entity):
-    def __init__(self, damage, health_points, max_health_points, armor, speed, size, color):
+    def __init__(self, damage, health_points, max_health_points, position, armor, speed, size, color):
         super().__init__(damage=damage,
                          health_points=health_points,
                          max_health_points=max_health_points,
+                         position=position,
                          armor=armor,
                          speed=speed,
                          size=size,
@@ -41,20 +42,17 @@ class Chaser(Enemy):
         super().__init__(damage=CHASER_DAMAGE,
                          health_points=CHASER_HEALTH_POINTS,
                          max_health_points=CHASER_MAX_HEALTH_POINTS,
+                         position = Enemy.get_random_spawn_position(CHASER_SIZE),
                          armor=CHASER_ARMOR,
                          speed=CHASER_SPEED,
                          size=CHASER_SIZE,
                          color=CHASER_COLOR)
-        
-        self.pos = self.get_random_spawn_position(CHASER_SIZE)
-        self.hitbox = pygame.Rect(self.pos.x, self.pos.y, self.size, self.size)
-        self.hitbox.center = self.pos
 
     def update(self, player_pos):
-        direction = direction_to(self.pos, player_pos)
+        direction = direction_to(self.position, player_pos)
         if direction:
-            self.pos += direction * float(self.speed)
-            self.hitbox.center = self.pos
+            self.position += direction * float(self.speed)
+            self.hitbox.center = self.position
 
         return self.health_points > 0
 
@@ -68,6 +66,7 @@ class Shooter(Enemy):
         super().__init__(damage=SHOOTER_DAMAGE,
                          health_points=SHOOTER_HEALTH_POINTS,
                          max_health_points=SHOOTER_MAX_HEALTH_POINTS,
+                         position=Enemy.get_random_spawn_position(SHOOTER_SIZE),
                          armor=SHOOTER_ARMOR,
                          speed=SHOOTER_SPEED,
                          size=SHOOTER_SIZE,
@@ -77,26 +76,23 @@ class Shooter(Enemy):
         self.shooter_interval = shoot_interval # how many frames between each shot
         self.new_projectiles = []   # newly generated projectiles
         self.in_position = False # if shooter in position and ready to shoot
-        self.pos = self.get_random_spawn_position(SHOOTER_SIZE)
-        self.hitbox = pygame.Rect(self.pos.x, self.pos.y, self.size, self.size)
-        self.hitbox.center = self.pos
 
     def update(self, player_pos):
-        direction = direction_to(self.pos, player_pos)
+        direction = direction_to(self.position, player_pos)
         horizontal_border_buff = 30
         vertical_border_buff = 30
         
         
         # Checking if shooter in position (on border)
         if not self.in_position:
-            if self.pos.x < horizontal_border_buff or \
-            self.pos.x > WINDOW_WIDTH - horizontal_border_buff or \
-            self.pos.y < vertical_border_buff or \
-            self.pos.y > WINDOW_HEIGHT - vertical_border_buff:
+            if self.position.x < horizontal_border_buff or \
+            self.position.x > WINDOW_WIDTH - horizontal_border_buff or \
+            self.position.y < vertical_border_buff or \
+            self.position.y > WINDOW_HEIGHT - vertical_border_buff:
             # Move on if not in position
                 if direction:
-                    self.pos += direction * float(self.speed)
-                    self.hitbox.center = self.pos
+                    self.position += direction * float(self.speed)
+                    self.hitbox.center = self.position
             # Set "in_position" to true if in position
             else:
                 self.in_position = True
@@ -115,10 +111,9 @@ class Shooter(Enemy):
         self.new_projectiles = []   # Jeden Frame leeren      
         self.shoot_timer += 1
         if self.shoot_timer >= self.shooter_interval:
-            self.new_projectiles.append(Projectile(self.pos.x,
-                                                    self.pos.y,
-                                                    velocity=direction,
-                                                    faction="enemy",
-                                                    damage=self.damage,
-                                                    color=SHOOTER_COLOR))
+            self.new_projectiles.append(Projectile(position=pygame.math.Vector2(self.position),
+                                                   velocity=direction,
+                                                   faction="enemy",
+                                                   damage=self.damage,
+                                                   color=SHOOTER_COLOR))
             self.shoot_timer = 0

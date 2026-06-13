@@ -2,8 +2,8 @@ import pygame
 from settings import *
 
 class Projectile:
-    def __init__(self, x_position, y_position, velocity, faction, damage, speed=PROJECTILE_SPEED, piercing=PROJECTILE_PIERCING, size=PROJECTILE_SIZE, color=(255, 255, 0)):
-        self.pos = pygame.math.Vector2(x_position, y_position)
+    def __init__(self, position, velocity, faction, damage, speed=PROJECTILE_SPEED, piercing=PROJECTILE_PIERCING, size=PROJECTILE_SIZE, color=(255, 255, 0)):
+        self.position = position
         self.velocity = pygame.math.Vector2(velocity)  # (vel_x, vel_y) normalisierter Vektor
         self.faction = faction
         self.speed = speed
@@ -12,20 +12,20 @@ class Projectile:
         self.size = size
         self.color = color
         self.hitbox = pygame.Rect(
-            self.pos.x - self.size,
-            self.pos.y - self.size,
+            self.position.x - self.size,
+            self.position.y - self.size,
             self.size * 2,
             self.size * 2
         )
-        self.hitbox.center = self.pos
+        self.hitbox.center = self.position
 
     def update(self):    
-        self.pos += self.velocity * self.speed
-        self.hitbox.center = self.pos
+        self.position += self.velocity * self.speed
+        self.hitbox.center = self.position
         buff = self.size // 2
-        in_bounds = -buff < self.pos.x < WINDOW_WIDTH + buff and -buff < self.pos.y < WINDOW_HEIGHT + buff
+        in_bounds = -buff < self.position.x < WINDOW_WIDTH + buff and -buff < self.position.y < WINDOW_HEIGHT + buff
         
         return in_bounds and self.piercing > 0
             
     def draw(self, screen):
-        pygame.draw.circle(screen, self.color, self.pos, self.size)
+        pygame.draw.circle(screen, self.color, self.position, self.size)
