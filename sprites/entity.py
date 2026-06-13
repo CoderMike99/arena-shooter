@@ -5,9 +5,10 @@ from settings import *
 from utils import direction_to
 
 class Entity(ABC):
-    def __init__(self, health_points, max_health_points, armor, speed, size, color):
+    def __init__(self, health_points, max_health_points, damage, armor, speed, size, color):
         self.health_points = health_points
         self.max_health_points = max_health_points
+        self.damage = damage
         self.armor = armor
         self.speed = float(speed)
         self.size = size
@@ -49,6 +50,4 @@ class Entity(ABC):
         pygame.draw.rect(screen, self.color, self.hitbox)
         self.draw_health_bar(screen)
 
-    @abstractmethod
-    def update(self, player_pos: pygame.math.Vector2):
-        pass
+    

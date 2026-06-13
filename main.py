@@ -20,7 +20,7 @@ running = True
 score = 0
 
 player1_controls = {"up": pygame.K_w, "down": pygame.K_s, "left": pygame.K_a, "right": pygame.K_d}
-player1 = Player(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, player1_controls, health_points=100, max_health_points=100, armor=10, color=(255, 0, 0))
+player1 = Player(controls=player1_controls)
 
 """ player2_controls = {"up": pygame.K_UP, "down": pygame.K_DOWN, "left": pygame.K_LEFT, "right": pygame.K_RIGHT}
 player2 = Player(200, 200, player2_controls, color=(0, 0, 255)) """
@@ -67,7 +67,7 @@ while running:
                 if event.type == pygame.JOYBUTTONDOWN and event.button == 5:
                     direction = joystick_direction(joystick)
                     if direction is not None and player1.current_projectile_count < player1.max_projectile_count:
-                        projectiles.append(Projectile(*player1.getPosition(), velocity=direction, faction="player", damage=PLAYER_DAMAGE, color=(255,165,0)))
+                        projectiles.append(Projectile(*player1.getPosition(), velocity=direction, faction="player", damage=player1.damage, color=(255,165,0)))
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
                     enemies.append(Chaser())
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_e:

@@ -7,8 +7,9 @@ from settings import *
 from utils import direction_to
 
 class Enemy(Entity):
-    def __init__(self, health_points, max_health_points, armor, speed, size, color):
-        super().__init__(health_points=health_points,
+    def __init__(self, damage, health_points, max_health_points, armor, speed, size, color):
+        super().__init__(damage=damage,
+                         health_points=health_points,
                          max_health_points=max_health_points,
                          armor=armor,
                          speed=speed,
@@ -31,11 +32,14 @@ class Enemy(Entity):
             case default:
                 return pygame.math.Vector2(0,0)
         
-
+    @abstractmethod
+    def update(self, player_pos: pygame.math.Vector2):
+        pass
 
 class Chaser(Enemy):
     def __init__(self):
-        super().__init__(health_points=CHASER_HEALTH_POINTS,
+        super().__init__(damage=CHASER_DAMAGE,
+                         health_points=CHASER_HEALTH_POINTS,
                          max_health_points=CHASER_MAX_HEALTH_POINTS,
                          armor=CHASER_ARMOR,
                          speed=CHASER_SPEED,
@@ -61,7 +65,8 @@ class Chaser(Enemy):
 
 class Shooter(Enemy):
     def __init__(self, shoot_interval = SHOOTER_SHOOT_INTERVAL):
-        super().__init__(health_points=SHOOTER_HEALTH_POINTS,
+        super().__init__(damage=SHOOTER_DAMAGE,
+                         health_points=SHOOTER_HEALTH_POINTS,
                          max_health_points=SHOOTER_MAX_HEALTH_POINTS,
                          armor=SHOOTER_ARMOR,
                          speed=SHOOTER_SPEED,
@@ -80,7 +85,7 @@ class Shooter(Enemy):
         direction = direction_to(self.pos, player_pos)
         horizontal_border_buff = 30
         vertical_border_buff = 30
-        self.new_projectiles = []   # Jeden Frame leeren
+        
         
         # Checking if shooter in position (on border)
         if not self.in_position:
@@ -97,15 +102,7 @@ class Shooter(Enemy):
                 self.in_position = True
         # Shoot if in position
         else:
-            self.shoot_timer += 1
-            if self.shoot_timer >= self.shooter_interval:
-                self.new_projectiles.append(Projectile(self.pos.x,
-                                                       self.pos.y,
-                                                       velocity=direction,
-                                                       faction="enemy",
-                                                       damage=SHOOTER_DAMAGE,
-                                                       color=SHOOTER_COLOR))
-                self.shoot_timer = 0
+            self.shoot(direction)
             
 
         return self.health_points > 0
@@ -114,5 +111,14 @@ class Shooter(Enemy):
         pygame.draw.rect(screen, self.color, self.hitbox)
         self.draw_health_bar(screen)
 
-    def shoot(self, player_pos):
-        pass
+    def shoot(self, direction):
+        self.new_projectiles = []   # Jeden Frame leeren      
+        self.shoot_timer += 1
+        if self.shoot_timer >= self.shooter_interval:
+            self.new_projectiles.append(Projectile(self.pos.x,
+                                                    self.pos.y,
+                                                    velocity=direction,
+                                                    faction="enemy",
+                                                    damage=self.damage,
+                                                    color=SHOOTER_COLOR))
+            self.shoot_timer = 0

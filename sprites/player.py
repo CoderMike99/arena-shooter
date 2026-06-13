@@ -1,11 +1,22 @@
 import pygame
 from sprites.entity import Entity
-from settings import WINDOW_HEIGHT, WINDOW_WIDTH, PLAYER_SIZE, PLAYER_SPEED, PLAYER_MAX_PROJECTILE_COUNT, DASH_COOLDOWN_MAX, DASH_DURATION, DASH_RANGE
+from settings import WINDOW_HEIGHT, WINDOW_WIDTH, PLAYER_MAX_HEALTH_POINTS, PLAYER_DAMAGE, PLAYER_SIZE, PLAYER_ARMOR, PLAYER_SPEED, PLAYER_COLOR, PLAYER_MAX_PROJECTILE_COUNT, DASH_COOLDOWN_MAX, DASH_DURATION, DASH_RANGE
 from utils import normalize_vector, apply_deadzone, dash_delta
 
 class Player(Entity):
-    def __init__(self, x_position, y_position, controls, health_points, max_health_points, armor, speed=PLAYER_SPEED, max_projectile_count=PLAYER_MAX_PROJECTILE_COUNT, size=PLAYER_SIZE, color=(255, 0, 0)):
-        super().__init__(health_points=health_points,
+    def __init__(self, 
+                 controls,
+                 x_position=WINDOW_WIDTH // 2,
+                 y_position=WINDOW_HEIGHT // 2,
+                 damage = PLAYER_DAMAGE, 
+                 health_points=PLAYER_MAX_HEALTH_POINTS, 
+                 max_health_points=PLAYER_MAX_HEALTH_POINTS, 
+                 armor=PLAYER_ARMOR, speed=PLAYER_SPEED, 
+                 max_projectile_count=PLAYER_MAX_PROJECTILE_COUNT, 
+                 size=PLAYER_SIZE, 
+                 color=PLAYER_COLOR):
+        super().__init__(damage=damage,
+                         health_points=health_points,
                          max_health_points=max_health_points,
                          armor=armor,
                          speed=speed,
