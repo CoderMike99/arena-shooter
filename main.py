@@ -32,6 +32,7 @@ enemies: list[Enemy] = []
 damage_numbers: list[DamageNumber] = []
 
 font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 20)
+game_over_font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 40)
 dmg_number_font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 10)
 debug_font = pygame.font.SysFont("Courier New", 14)
 
@@ -47,7 +48,6 @@ def handle_global_events(events) -> bool:
         if event.type == pygame.JOYBUTTONDOWN and event.button == 7:
             state = "paused" if state == "playing" else "playing"
     return True
-
 
 def handle_playing_events(events, input_state):
     """Events die nur im playing State relevant sind."""
@@ -65,10 +65,22 @@ def handle_playing_events(events, input_state):
         if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
             enemies.append(Shooter())
 
+def handle_game_over_events(events):
+    global player1, spawn_manager, state, score, enemies, projectiles, game_time
+    for event in events:
+        if event.type == pygame.JOYBUTTONDOWN and event.button == 0:
+            player1 = Player(controls=player1_controls)
+            score = 0
+            enemies = []
+            projectiles = []
+            game_time = 0
+            state = "playing"
+            spawn_manager = SpawnManager()
+
 
 def update_game_logic(input_state):
     """Spiellogik – nur im playing State."""
-    global enemies, projectiles, damage_numbers, game_time, score
+    global state, enemies, projectiles, damage_numbers, game_time, score
 
     game_time += 1
     enemies += spawn_manager.update()
@@ -103,6 +115,9 @@ def update_game_logic(input_state):
     enemies[:] = [e for e in enemies if e.update(player1.getPosition())]
     score += kills - len(enemies)
 
+    if player1.health_points <= 0:
+        state = "game_over"
+
 
 def draw_playing():
     """Alles zeichnen im playing State."""
@@ -113,8 +128,9 @@ def draw_playing():
     draw_text(screen, debug_font, f"Difficulty: {spawn_manager.current_difficulty:.2f}", (150, 150, 150), 10, 30, anchor="topleft")
     draw_text(screen, debug_font, f"Max Spawn Interval Chaser: {int(CHASER_INITIAL_SPAWN_INTERVAL - spawn_manager.current_difficulty) / 60:.2f}s", (150, 150, 150), 10, 50, anchor="topleft")
     draw_text(screen, debug_font, f"Max Spawn Interval Shooter: {int(SHOOTER_INITIAL_SPAWN_INTERVAL - spawn_manager.current_difficulty * 10) / 60:.2f}s", (150, 150, 150), 10, 70, anchor="topleft")
-    draw_text(screen, debug_font, f"Game Time: {game_time // 3600}:{(game_time % 3600) // 60:02d}", (150, 150, 150), WINDOW_WIDTH - 10, 10, anchor="topright")
-    draw_text(screen, debug_font, f"Player HP: {player1.health_points} / {player1.max_health_points}", (150, 150, 150), WINDOW_WIDTH - 10, 30, anchor="topright")
+    draw_text(screen, debug_font, f"Game State: {state}", (150, 150, 150), WINDOW_WIDTH - 10, 10, anchor="topright")
+    draw_text(screen, debug_font, f"Game Time: {game_time // 3600}:{(game_time % 3600) // 60:02d}", (150, 150, 150), WINDOW_WIDTH - 10, 30, anchor="topright")
+    draw_text(screen, debug_font, f"Player HP: {player1.health_points} / {player1.max_health_points}", (150, 150, 150), WINDOW_WIDTH - 10, 50, anchor="topright")
 
     player1.draw(screen)
     for enemy in enemies:
@@ -128,11 +144,20 @@ def draw_playing():
 def draw_paused():
     """Pause overlay."""
     overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
-    overlay.set_alpha(128)
+    overlay.set_alpha(64)
     overlay.fill((0, 0, 0))
     screen.blit(overlay, (0, 0))
     draw_text(screen, font, "GAME PAUSED", (255, 255, 255), WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, anchor="center")
 
+def draw_game_over():
+    """Game over overlay."""
+    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+    overlay.set_alpha(128)
+    overlay.fill((0, 0, 0))
+    screen.blit(overlay, (0, 0))
+    draw_text(screen, game_over_font, "GAME OVER", (255, 0, 0), WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, anchor="center")
+    draw_text(screen, font, f"Score: {score}", (255,255,255), WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 30, anchor="center")
+    draw_text(screen, font, f"Press A to restart.", (255,255,255), WINDOW_WIDTH // 2, 30, anchor="center")
 
 # Game Loop
 while running:
@@ -148,6 +173,9 @@ while running:
         draw_playing()
     elif state == "paused":
         draw_paused()
+    elif state == "game_over":
+        handle_game_over_events(events)
+        draw_game_over()
 
     pygame.display.flip()
     clock.tick(60)
