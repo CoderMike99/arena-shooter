@@ -18,7 +18,7 @@ def joystick_direction(joystick):
 
 def normalize_vector(vector_x, vector_y):
     length = math.sqrt(vector_x ** 2 + vector_y ** 2)
-    return (vector_x / length, vector_y / length)
+    return (vector_x / length, vector_y / length) if length != 0 else (0,0)
 
 def direction_to(from_pos, to_pos) -> pygame.math.Vector2:
     if to_pos != from_pos:

@@ -57,9 +57,9 @@ def handle_playing_events(events, input_state):
 
         if event.type == pygame.JOYBUTTONDOWN and event.button == 5:
             direction = joystick_direction(joystick)
-            if direction is not None and player1.current_projectile_count < player1.max_projectile_count:
+            if direction is not None and player1.attack_cooldown_remaining <= 0:
                 projectiles.append(Projectile(player1.getPosition(), velocity=direction, faction="player", damage=player1.damage, color=(255, 165, 0)))
-
+                player1.attack_cooldown_remaining = player1.attack_cooldown_max
         if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
             enemies.append(Chaser())
         if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
@@ -81,12 +81,18 @@ def update_game_logic(input_state):
         if isinstance(enemy, Shooter):
             projectiles += enemy.new_projectiles
             enemy.new_projectiles = []
-
+        if isinstance(enemy, Chaser):
+            if enemy.hitbox.colliderect(player1.hitbox) and enemy.attack_cooldown_remaining <= 0:
+                enemy.attack_cooldown_remaining = enemy.attack_cooldown_max
+                player1.take_damage(enemy.damage)
+                damage_numbers.append(DamageNumber(font=dmg_number_font, position=player1.position, number=int(enemy.damage - player1.armor)))
+            
     for projectile in projectiles:
         targets = enemies if projectile.faction == "player" else [player1]
         for target in targets:
-            if target.hitbox.colliderect(projectile.hitbox):
+            if target.hitbox.colliderect(projectile.hitbox) and target not in projectile.damaged_targets:
                 projectile.piercing -= 1
+                projectile.damaged_targets.append(target)
                 target.take_damage(projectile.damage)
                 damage_numbers.append(DamageNumber(font=dmg_number_font, position=target.position, number=int(projectile.damage - target.armor)))
 
@@ -108,7 +114,7 @@ def draw_playing():
     draw_text(screen, debug_font, f"Max Spawn Interval Chaser: {int(CHASER_INITIAL_SPAWN_INTERVAL - spawn_manager.current_difficulty) / 60:.2f}s", (150, 150, 150), 10, 50, anchor="topleft")
     draw_text(screen, debug_font, f"Max Spawn Interval Shooter: {int(SHOOTER_INITIAL_SPAWN_INTERVAL - spawn_manager.current_difficulty * 10) / 60:.2f}s", (150, 150, 150), 10, 70, anchor="topleft")
     draw_text(screen, debug_font, f"Game Time: {game_time // 3600}:{(game_time % 3600) // 60:02d}", (150, 150, 150), WINDOW_WIDTH - 10, 10, anchor="topright")
-    draw_text(screen, debug_font, f"Bullets: {player1.max_projectile_count - player1.current_projectile_count}", (150, 150, 150), WINDOW_WIDTH - 10, 30, anchor="topright")
+    draw_text(screen, debug_font, f"Player HP: {player1.health_points} / {player1.max_health_points}", (150, 150, 150), WINDOW_WIDTH - 10, 30, anchor="topright")
 
     player1.draw(screen)
     for enemy in enemies:

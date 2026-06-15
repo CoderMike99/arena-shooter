@@ -1,6 +1,6 @@
 import pygame
 from sprites.entity import Entity
-from settings import WINDOW_HEIGHT, WINDOW_WIDTH, PLAYER_MAX_HEALTH_POINTS, PLAYER_DAMAGE, PLAYER_SIZE, PLAYER_ARMOR, PLAYER_SPEED, PLAYER_COLOR, PLAYER_MAX_PROJECTILE_COUNT, DASH_COOLDOWN_MAX, DASH_DURATION, DASH_RANGE
+from settings import WINDOW_HEIGHT, WINDOW_WIDTH, PLAYER_MAX_HEALTH_POINTS, PLAYER_DAMAGE, PLAYER_SIZE, PLAYER_ARMOR, PLAYER_ATTACK_SPEED, PLAYER_MOVEMENT_SPEED, PLAYER_COLOR, DASH_COOLDOWN_MAX, DASH_DURATION, DASH_RANGE
 from utils import normalize_vector, apply_deadzone, dash_delta
 
 class Player(Entity):
@@ -10,8 +10,8 @@ class Player(Entity):
                  damage = PLAYER_DAMAGE, 
                  health_points=PLAYER_MAX_HEALTH_POINTS, 
                  max_health_points=PLAYER_MAX_HEALTH_POINTS, 
-                 armor=PLAYER_ARMOR, speed=PLAYER_SPEED, 
-                 max_projectile_count=PLAYER_MAX_PROJECTILE_COUNT, 
+                 armor=PLAYER_ARMOR, speed=PLAYER_MOVEMENT_SPEED,
+                 attack_speed=PLAYER_ATTACK_SPEED,
                  size=PLAYER_SIZE, 
                  color=PLAYER_COLOR):
         super().__init__(damage=damage,
@@ -19,12 +19,11 @@ class Player(Entity):
                          max_health_points=max_health_points,
                          position=position,
                          armor=armor,
-                         speed=speed,
+                         attack_speed=attack_speed,
+                         movement_speed=speed,
                          size=size,
                          color=color)
 
-        
-        self.max_projectile_count = max_projectile_count
         self.current_projectile_count = 0
         self.controls = controls
         self.position = position
@@ -41,7 +40,8 @@ class Player(Entity):
     
     def update(self, input_state: dict, joystick=None):
         self.hitbox.center = self.position
-        
+        if self.attack_cooldown_remaining > 0:
+            self.attack_cooldown_remaining -= 1
         if self.dash_cooldown_remaining > 0:
             self.dash_cooldown_remaining -= 1
 
@@ -75,8 +75,8 @@ class Player(Entity):
             axis_x = apply_deadzone(joystick.get_axis(0))
             axis_y = apply_deadzone(joystick.get_axis(1))
 
-            self.position.x = max(0, min(self.position.x + round(axis_x * self.speed), WINDOW_WIDTH - self.size))
-            self.position.y = max(0, min(self.position.y + round(axis_y * self.speed), WINDOW_HEIGHT - self.size))
+            self.position.x = max(0, min(self.position.x + round(axis_x * self.movement_speed), WINDOW_WIDTH - self.size))
+            self.position.y = max(0, min(self.position.y + round(axis_y * self.movement_speed), WINDOW_HEIGHT - self.size))
 
 
     def dash(self, joystick=None):
@@ -84,7 +84,8 @@ class Player(Entity):
         if self.dash_cooldown_remaining == 0 and joystick:
             self.dash_cooldown_remaining = DASH_COOLDOWN_MAX
             self.dash_direction = pygame.math.Vector2(normalize_vector(apply_deadzone(joystick.get_axis(0)), apply_deadzone(joystick.get_axis(1))))
-            self.dash_active = True                                         
+            if self.dash_direction != pygame.math.Vector2(0,0):
+                self.dash_active = True                                         
         
         # Change position and continue progress
         if self.dash_active:

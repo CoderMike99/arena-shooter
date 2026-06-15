@@ -11,7 +11,7 @@ class DamageNumber:
         self.lifetime = lifetime
         self.lifetime_remaining = lifetime
         self.alpha = 255
-        self.isCrit = (randint(1,5) == 1)
+        self.isCrit = isCrit
         self.text = str(number) + "!" if self.isCrit else str(number) 
         self.color = (255,0,0) if self.isCrit else color
 

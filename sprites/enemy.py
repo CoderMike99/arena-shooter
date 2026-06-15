@@ -7,13 +7,14 @@ from settings import *
 from utils import direction_to
 
 class Enemy(Entity):
-    def __init__(self, damage, health_points, max_health_points, position, armor, speed, size, color):
+    def __init__(self, damage, health_points, max_health_points, position, armor, attack_speed, movement_speed, size, color):
         super().__init__(damage=damage,
                          health_points=health_points,
                          max_health_points=max_health_points,
                          position=position,
                          armor=armor,
-                         speed=speed,
+                         attack_speed=attack_speed,
+                         movement_speed=movement_speed,
                          size=size,
                          color=color)
 
@@ -44,15 +45,19 @@ class Chaser(Enemy):
                          max_health_points=CHASER_MAX_HEALTH_POINTS,
                          position = Enemy.get_random_spawn_position(CHASER_SIZE),
                          armor=CHASER_ARMOR,
-                         speed=CHASER_SPEED,
+                         attack_speed=CHASER_ATTACK_SPEED,
+                         movement_speed=CHASER_MOVEMENT_SPEED,
                          size=CHASER_SIZE,
                          color=CHASER_COLOR)
 
     def update(self, player_pos):
         direction = direction_to(self.position, player_pos)
         if direction:
-            self.position += direction * float(self.speed)
+            self.position += direction * float(self.movement_speed)
             self.hitbox.center = self.position
+
+        if self.attack_cooldown_remaining > 0:
+            self.attack_cooldown_remaining -= 1
 
         return self.health_points > 0
 
@@ -68,12 +73,11 @@ class Shooter(Enemy):
                          max_health_points=SHOOTER_MAX_HEALTH_POINTS,
                          position=Enemy.get_random_spawn_position(SHOOTER_SIZE),
                          armor=SHOOTER_ARMOR,
-                         speed=SHOOTER_SPEED,
+                         attack_speed=SHOOTER_ATTACK_SPEED,
+                         movement_speed=SHOOTER_MOVEMENT_SPEED,
                          size=SHOOTER_SIZE,
                          color=SHOOTER_COLOR)
         
-        self.shoot_timer = 0
-        self.shooter_interval = shoot_interval # how many frames between each shot
         self.new_projectiles = []   # newly generated projectiles
         self.in_position = False # if shooter in position and ready to shoot
 
@@ -91,7 +95,7 @@ class Shooter(Enemy):
             self.position.y > WINDOW_HEIGHT - vertical_border_buff:
             # Move on if not in position
                 if direction:
-                    self.position += direction * float(self.speed)
+                    self.position += direction * float(self.movement_speed)
                     self.hitbox.center = self.position
             # Set "in_position" to true if in position
             else:
@@ -109,11 +113,12 @@ class Shooter(Enemy):
 
     def shoot(self, direction):
         self.new_projectiles = []   # Jeden Frame leeren      
-        self.shoot_timer += 1
-        if self.shoot_timer >= self.shooter_interval:
+        if self.attack_cooldown_remaining > 0:
+            self.attack_cooldown_remaining -= 1
+        else:
             self.new_projectiles.append(Projectile(position=pygame.math.Vector2(self.position),
                                                    velocity=direction,
                                                    faction="enemy",
                                                    damage=self.damage,
                                                    color=SHOOTER_COLOR))
-            self.shoot_timer = 0
+            self.attack_cooldown_remaining = self.attack_cooldown_max

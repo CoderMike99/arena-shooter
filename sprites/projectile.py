@@ -18,6 +18,7 @@ class Projectile:
             self.size * 2
         )
         self.hitbox.center = self.position
+        self.damaged_targets = []
 
     def update(self):    
         self.position += self.velocity * self.speed

@@ -5,12 +5,15 @@ from settings import *
 from utils import direction_to
 
 class Entity(ABC):
-    def __init__(self, health_points, max_health_points, position,  damage, armor, speed, size, color):
+    def __init__(self, health_points, max_health_points, position,  damage, armor, attack_speed, movement_speed, size, color):
         self.health_points = health_points
         self.max_health_points = max_health_points
         self.damage = damage
         self.armor = armor
-        self.speed = float(speed)
+        self.attack_speed = float(attack_speed)
+        self.attack_cooldown_max = int(60 / attack_speed)
+        self.attack_cooldown_remaining = 0 
+        self.movement_speed = float(movement_speed)
         self.size = size
         self.color = color
         self.position = position
