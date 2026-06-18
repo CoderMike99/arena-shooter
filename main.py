@@ -3,6 +3,7 @@ from sprites.player import Player
 from sprites.projectile import Projectile
 from sprites.enemy import Enemy, Chaser, Shooter
 from ui.ui import draw_text
+from ui.hud import draw_hud
 from ui.damage_number import DamageNumber
 from settings import *
 from utils import *
@@ -11,7 +12,10 @@ from spawn_manager import SpawnManager
 
 pygame.init()
 
-screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+info = pygame.display.Info()
+#screen = pygame.display.set_mode((info.current_w, info.current_h), pygame.FULLSCREEN)
+#screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+screen = pygame.display.set_mode((1920, 1080), pygame.NOFRAME)
 pygame.display.set_caption("Mein erstes Fenster")
 
 clock = pygame.time.Clock()
@@ -24,8 +28,9 @@ player1_controls = {"up": pygame.K_w, "down": pygame.K_s, "left": pygame.K_a, "r
 player1 = Player(controls=player1_controls)
 
 pygame.joystick.init()
-joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
-joystick = joysticks[0] if joysticks else None
+joysticks: list[pygame.joystick.JoystickType] = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+if joysticks is not None:
+    joystick: pygame.joystick.JoystickType | None = joysticks[0]
 
 projectiles = []
 enemies: list[Enemy] = []
@@ -38,6 +43,10 @@ debug_font = pygame.font.SysFont("Courier New", 14)
 
 spawn_manager = SpawnManager()
 
+def set_state(new_state):
+    global state, previous_state
+    previous_state = state
+    state = new_state
 
 def handle_global_events(events) -> bool:
     """Events die immer gelten, egal welcher State. Gibt False zurück wenn Spiel beendet werden soll."""
@@ -46,20 +55,31 @@ def handle_global_events(events) -> bool:
         if event.type == pygame.QUIT:
             return False
         if event.type == pygame.JOYBUTTONDOWN and event.button == 7:
-            state = "paused" if state == "playing" else "playing"
+            set_state("paused") if state == "playing" else set_state("playing")
     return True
 
 def handle_playing_events(events, input_state):
+    global state, joystick, joysticks
     """Events die nur im playing State relevant sind."""
+    
+    
+    if joystick and joystick.get_button(5):
+            direction = joystick_direction(joystick)
+            projectile = player1.shoot(direction)
+            if projectile:
+                projectiles.append(projectile)
+    
     for event in events:
+        if event.type == pygame.JOYDEVICEREMOVED:
+            joystick = None
+            state = "controller_disconnected"
+
+        if event.type == pygame.JOYDEVICEADDED:
+            joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+            joystick = joysticks[0] if joysticks else None
+            state = "playing"  # oder vorheriger state
         if event.type == pygame.JOYBUTTONDOWN and event.button == 2:
             input_state["dash_pressed"] = True
-
-        if event.type == pygame.JOYBUTTONDOWN and event.button == 5:
-            direction = joystick_direction(joystick)
-            if direction is not None and player1.attack_cooldown_remaining <= 0:
-                projectiles.append(Projectile(player1.getPosition(), velocity=direction, faction="player", damage=player1.damage, color=(255, 165, 0)))
-                player1.attack_cooldown_remaining = player1.attack_cooldown_max
         if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
             enemies.append(Chaser())
         if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
@@ -122,7 +142,7 @@ def update_game_logic(input_state):
 def draw_playing():
     """Alles zeichnen im playing State."""
     screen.fill((30, 30, 30))
-
+    
     draw_text(screen, font, f"Score: {score}", (255, 255, 255), WINDOW_WIDTH // 2, 20, anchor="midtop")
     draw_text(screen, debug_font, f"Enemies: {len(enemies)}", (150, 150, 150), 10, 10, anchor="topleft")
     draw_text(screen, debug_font, f"Difficulty: {spawn_manager.current_difficulty:.2f}", (150, 150, 150), 10, 30, anchor="topleft")
@@ -140,14 +160,16 @@ def draw_playing():
     for number in damage_numbers:
         number.draw(screen)
 
+    draw_hud(screen, player1, score, game_time, font, dmg_number_font)
 
-def draw_paused():
-    """Pause overlay."""
-    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
-    overlay.set_alpha(64)
-    overlay.fill((0, 0, 0))
+
+
+def draw_overlay(text):
+    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 100))
     screen.blit(overlay, (0, 0))
-    draw_text(screen, font, "GAME PAUSED", (255, 255, 255), WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, anchor="center")
+    draw_text(screen, font, text, (255,255,255), WINDOW_WIDTH//2, WINDOW_HEIGHT//2, anchor="center")
+
 
 def draw_game_over():
     """Game over overlay."""
@@ -172,7 +194,10 @@ while running:
         update_game_logic(player1_input_state)
         draw_playing()
     elif state == "paused":
-        draw_paused()
+        draw_overlay("GAME PAUSED")
+    elif state == "controller_disconnected":
+        draw_overlay("CONTROLLER DISCONNECTED")
+
     elif state == "game_over":
         handle_game_over_events(events)
         draw_game_over()
