@@ -24,7 +24,7 @@ class Projectile:
         self.position += self.velocity * self.speed
         self.hitbox.center = self.position
         buff = self.size // 2
-        in_bounds = -buff < self.position.x < WINDOW_WIDTH + buff and -buff < self.position.y < WINDOW_HEIGHT + buff
+        in_bounds = -buff < self.position.x < WINDOW_WIDTH + buff and -buff < self.position.y < PLAY_AREA_HEIGHT + buff
         
         return in_bounds and self.piercing > 0
             

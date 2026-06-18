@@ -24,13 +24,13 @@ class Enemy(Entity):
 
         match side:
             case "left":
-                return pygame.math.Vector2(-40, random.randint(0, WINDOW_HEIGHT))
+                return pygame.math.Vector2(-40, random.randint(0, PLAY_AREA_HEIGHT))
             case "right":
-                return pygame.math.Vector2(WINDOW_WIDTH + size // 2, random.randint(0, WINDOW_HEIGHT))
+                return pygame.math.Vector2(WINDOW_WIDTH + size // 2, random.randint(0, PLAY_AREA_HEIGHT))
             case "top":
                 return pygame.math.Vector2(random.randint(0, WINDOW_WIDTH), -40)
             case "bottom":
-                return pygame.math.Vector2(random.randint(0, WINDOW_WIDTH), WINDOW_HEIGHT + size // 2)
+                return pygame.math.Vector2(random.randint(0, WINDOW_WIDTH), PLAY_AREA_HEIGHT + size // 2)
             case default:
                 return pygame.math.Vector2(0,0)
         
@@ -92,7 +92,7 @@ class Shooter(Enemy):
             if self.position.x < horizontal_border_buff or \
             self.position.x > WINDOW_WIDTH - horizontal_border_buff or \
             self.position.y < vertical_border_buff or \
-            self.position.y > WINDOW_HEIGHT - vertical_border_buff:
+            self.position.y > PLAY_AREA_HEIGHT - vertical_border_buff:
             # Move on if not in position
                 if direction:
                     self.position += direction * float(self.movement_speed)
@@ -122,3 +122,51 @@ class Shooter(Enemy):
                                                    damage=self.damage,
                                                    color=SHOOTER_COLOR))
             self.attack_cooldown_remaining = self.attack_cooldown_max
+
+class Seeker(Enemy):
+    def __init__(self,
+                 max_turn_angle=SEEKER_MAX_TURN_ANGLE,
+                 min_movement_speed = SEEKER_MIN_MOVEMENT_SPEED):
+        super().__init__(damage=SEEKER_DAMAGE,
+                         health_points=SEEKER_HEALTH_POINTS,
+                         max_health_points=SEEKER_MAX_HEALTH_POINTS,
+                         position=Enemy.get_random_spawn_position(SEEKER_SIZE),
+                         armor=SEEKER_ARMOR,
+                         attack_speed=SEEKER_ATTACK_SPEED,
+                         movement_speed=SEEKER_MOVEMENT_SPEED,
+                         size=SEEKER_SIZE,
+                         color=SEEKER_COLOR)
+        
+        self.velocity = pygame.math.Vector2(self.movement_speed, 0).rotate(random.uniform(0, 360))
+        self.max_turn_angle = max_turn_angle
+        self.current_speed = min_movement_speed
+
+    def update(self, player_pos):
+        target_direction = direction_to(self.position, player_pos)
+        angle_to_target = self.velocity.angle_to(target_direction)
+        angle = max(-self.max_turn_angle, min(self.max_turn_angle, angle_to_target))
+
+
+        # in update():
+        # Zielgeschwindigkeit basierend auf Kurve
+        target_speed = self.movement_speed * (1 - (abs(angle) / self.max_turn_angle) * 0.5)
+
+        # Geschwindigkeit nur langsam anpassen
+        max_accel = 0.1  # z.B. 0.1 px/frame²
+        if self.current_speed < target_speed:
+            self.current_speed = min(target_speed, self.current_speed + max_accel)
+        else:
+            self.current_speed = max(target_speed, self.current_speed - max_accel)
+
+        self.velocity = self.velocity.rotate(angle).normalize() * self.current_speed
+        
+        self.position += self.velocity
+
+        self.hitbox.center = self.position
+
+        return self.health_points > 0
+    
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.color, self.hitbox)
+        self.draw_health_bar(screen)

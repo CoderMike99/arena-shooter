@@ -1,6 +1,8 @@
 import math
 import pygame
 
+
+
 # Returns direction tuple of right joystick, or left joystick if right is idle
 def joystick_direction(joystick):
     left_stick_axis_x = joystick.get_axis(0)

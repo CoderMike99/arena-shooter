@@ -1,12 +1,13 @@
 import pygame
 from sprites.entity import Entity
-from settings import WINDOW_HEIGHT, WINDOW_WIDTH, PLAYER_MAX_HEALTH_POINTS, PLAYER_DAMAGE, PLAYER_SIZE, PLAYER_ARMOR, PLAYER_ATTACK_SPEED, PLAYER_MOVEMENT_SPEED, PLAYER_COLOR, DASH_COOLDOWN_MAX, DASH_DURATION, DASH_RANGE
+from sprites.projectile import Projectile
+from settings import PLAY_AREA_HEIGHT, WINDOW_WIDTH, PLAYER_MAX_HEALTH_POINTS, PLAYER_DAMAGE, PLAYER_SIZE, PLAYER_ARMOR, PLAYER_ATTACK_SPEED, PLAYER_MOVEMENT_SPEED, PLAYER_COLOR, DASH_COOLDOWN_MAX, DASH_DURATION, DASH_RANGE
 from utils import normalize_vector, apply_deadzone, dash_delta
 
 class Player(Entity):
     def __init__(self, 
                  controls,
-                 position=pygame.math.Vector2(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2),
+                 position=pygame.math.Vector2(WINDOW_WIDTH // 2, PLAY_AREA_HEIGHT // 2),
                  damage = PLAYER_DAMAGE, 
                  health_points=PLAYER_MAX_HEALTH_POINTS, 
                  max_health_points=PLAYER_MAX_HEALTH_POINTS, 
@@ -68,16 +69,22 @@ class Player(Entity):
             self.position.x -= 5
         if keys[self.controls["up"]] and self.position.y > 0:
             self.position.y -= 5
-        if keys[self.controls["down"]] and self.position.y < WINDOW_HEIGHT - self.size:
+        if keys[self.controls["down"]] and self.position.y < PLAY_AREA_HEIGHT - self.size:
             self.position.y += 5
 
         if joystick and (self.dash_progress >= DASH_DURATION * 0.3 or not self.dash_active):
             axis_x = apply_deadzone(joystick.get_axis(0))
             axis_y = apply_deadzone(joystick.get_axis(1))
 
-            self.position.x = max(0, min(self.position.x + round(axis_x * self.movement_speed), WINDOW_WIDTH - self.size))
-            self.position.y = max(0, min(self.position.y + round(axis_y * self.movement_speed), WINDOW_HEIGHT - self.size))
+            self.position.x = max(self.size // 2, min(self.position.x + round(axis_x * self.movement_speed), WINDOW_WIDTH - self.size // 2))
+            self.position.y = max(self.size // 2, min(self.position.y + round(axis_y * self.movement_speed), PLAY_AREA_HEIGHT - self.size // 2))
 
+    def shoot(self, direction) -> Projectile | None:
+        if self.attack_cooldown_remaining <= 0 and direction is not None:
+            self.attack_cooldown_remaining = self.attack_cooldown_max
+            return Projectile(self.getPosition(), velocity=direction, 
+                            faction="player", damage=self.damage, color=(255,165,0))
+        return None
 
     def dash(self, joystick=None):
         # First Frame of Dash Ability: Set dash direction, dash_active flag and manage cooldown

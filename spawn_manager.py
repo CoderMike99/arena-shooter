@@ -1,4 +1,4 @@
-from sprites.enemy import Enemy, Chaser, Shooter
+from sprites.enemy import Enemy, Chaser, Shooter, Seeker
 from settings import *
 import random
 
@@ -7,10 +7,12 @@ class SpawnManager:
     def __init__(self):
         self.current_difficulty = 1
         self.timers = {"Chaser": 0,
-                       "Shooter": 0
+                       "Shooter": 0,
+                       "Seeker": 0
                        }
         self.intervals = {"Chaser": CHASER_INITIAL_SPAWN_INTERVAL,
-                          "Shooter": SHOOTER_INITIAL_SPAWN_INTERVAL}
+                          "Shooter": SHOOTER_INITIAL_SPAWN_INTERVAL,
+                          "Seeker": SEEKER_INITIAL_SPAWN_INTERVAL}
 
     def update(self) -> list[Enemy]:
         self.current_difficulty += 0.001
@@ -27,6 +29,9 @@ class SpawnManager:
                     case "Shooter":
                         new_enemies.append(Shooter())
                         self.randomize_spawn_interval("Shooter")
+                    case "Seeker":
+                        new_enemies.append(Seeker())
+                        self.randomize_spawn_interval("Seeker")
 
         return new_enemies
 
@@ -41,6 +46,12 @@ class SpawnManager:
                 self.intervals["Shooter"] = random.randint(SHOOTER_MINIMAL_SPAWN_INTERVAL,
                                                            max(SHOOTER_MINIMAL_SPAWN_INTERVAL, int(SHOOTER_INITIAL_SPAWN_INTERVAL - self.current_difficulty * 10)))
             
+            case "Seeker":
+                self.intervals["Seeker"] = random.randint(SEEKER_MINIMAL_SPAWN_INTERVAL,
+                                                           max(SEEKER_MINIMAL_SPAWN_INTERVAL, int(SEEKER_INITIAL_SPAWN_INTERVAL - self.current_difficulty * 10)))
+            
+
+
             case default:
                 pass
 
