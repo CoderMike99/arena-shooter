@@ -29,7 +29,9 @@ class Player(Entity):
         self.controls = controls
         self.position = position
         self.hitbox = pygame.Rect(self.position.x, self.position.y, size, size)
-        
+        self.xp = 0
+        self.level = 0
+        self.xp_to_next_level = 30
 
         # Abilities
         self.dash_active = False
@@ -57,6 +59,10 @@ class Player(Entity):
 
     def getPosition(self):
         return pygame.math.Vector2(self.hitbox.centerx, self.hitbox.centery)
+
+    def get_xp(self, xp_value):
+        self.xp += xp_value
+        print(f"XP erhöht um {xp_value} auf {self.xp}")
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.hitbox)
@@ -104,3 +110,4 @@ class Player(Entity):
         if self.dash_progress >= DASH_DURATION:
             self.dash_active = False
             self.dash_progress = 0
+

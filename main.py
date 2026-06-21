@@ -1,12 +1,14 @@
 import pygame
 from sprites.player import Player
 from sprites.projectile import Projectile
-from sprites.enemy import Enemy, Chaser, Shooter
+from sprites.enemy import Enemy, Chaser, Shooter, Seeker
+from sprites.xpshard import XPShard
 from ui.ui import draw_text
 from ui.hud import draw_hud
 from ui.damage_number import DamageNumber
 from settings import *
 from utils import *
+from debug import draw_debug_vectors, draw_debug_angle
 from spawn_manager import SpawnManager
 
 
@@ -23,6 +25,7 @@ running = True
 score = 0
 game_time = 0
 state = "playing"
+debug = False
 
 player1_controls = {"up": pygame.K_w, "down": pygame.K_s, "left": pygame.K_a, "right": pygame.K_d}
 player1 = Player(controls=player1_controls)
@@ -35,6 +38,11 @@ if joysticks is not None:
 projectiles = []
 enemies: list[Enemy] = []
 damage_numbers: list[DamageNumber] = []
+xp_shards: list[XPShard] = []
+
+#for _ in range(200):
+#    xp_shards.append(XPShard(XP_VALUE_PLACEHOLDER, position=pygame.math.Vector2(random.randint(20, WINDOW_WIDTH-20), random.randint(20, WINDOW_HEIGHT-20))))
+
 
 font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 20)
 game_over_font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 40)
@@ -100,7 +108,7 @@ def handle_game_over_events(events):
 
 def update_game_logic(input_state):
     """Spiellogik – nur im playing State."""
-    global state, enemies, projectiles, damage_numbers, game_time, score
+    global state, enemies, projectiles, damage_numbers, xp_shards, game_time, score
 
     game_time += 1
     enemies += spawn_manager.update()
@@ -125,11 +133,15 @@ def update_game_logic(input_state):
             if target.hitbox.colliderect(projectile.hitbox) and target not in projectile.damaged_targets:
                 projectile.piercing -= 1
                 projectile.damaged_targets.append(target)
-                target.take_damage(projectile.damage)
+                if not target.take_damage(projectile.damage):
+                    xp_shards.append(XPShard(XP_VALUE_PLACEHOLDER, position=target.position))
+                    player1.get_xp(XP_VALUE_PLACEHOLDER)
                 damage_numbers.append(DamageNumber(font=dmg_number_font, position=target.position, number=int(projectile.damage - target.armor)))
 
+    
     projectiles[:] = [p for p in projectiles if p.update()]
     damage_numbers[:] = [n for n in damage_numbers if n.update()]
+    xp_shards[:] = [s for s in xp_shards if s.update(player_pos=player1.position)]
 
     kills = len(enemies)
     enemies[:] = [e for e in enemies if e.update(player1.getPosition())]
@@ -152,9 +164,16 @@ def draw_playing():
     draw_text(screen, debug_font, f"Game Time: {game_time // 3600}:{(game_time % 3600) // 60:02d}", (150, 150, 150), WINDOW_WIDTH - 10, 30, anchor="topright")
     draw_text(screen, debug_font, f"Player HP: {player1.health_points} / {player1.max_health_points}", (150, 150, 150), WINDOW_WIDTH - 10, 50, anchor="topright")
 
+    for shard in xp_shards:
+        shard.draw(screen)
+
     player1.draw(screen)
+
     for enemy in enemies:
         enemy.draw(screen)
+        if isinstance(enemy, Seeker) and debug:
+            draw_debug_vectors(screen, enemy, player1.getPosition())
+            draw_debug_angle(screen, enemy, enemy.angle_to_target, debug_font)
     for p in projectiles:
         p.draw(screen)
     for number in damage_numbers:

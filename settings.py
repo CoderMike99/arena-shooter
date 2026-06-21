@@ -65,9 +65,35 @@ SEEKER_ARMOR = 10
 SEEKER_DAMAGE = 40
 SEEKER_SIZE = 20
 SEEKER_ATTACK_SPEED = 0.25
-SEEKER_MOVEMENT_SPEED = 10
-SEEKER_MIN_MOVEMENT_SPEED = 5
 SEEKER_COLOR = (0, 0, 255)
 SEEKER_INITIAL_SPAWN_INTERVAL = 60 # frames
 SEEKER_MINIMAL_SPAWN_INTERVAL = 300 # frames
-SEEKER_MAX_TURN_ANGLE = 2 
+
+# Wie schnell er sich maximal bewegt (gerade Linie)
+SEEKER_MAX_SPEED = 10
+
+# Wie langsam er minimal wird (in scharfen Kurven)
+SEEKER_MIN_SPEED = 2
+
+# Wie viel Grad er PRO FRAME maximal drehen kann
+# 2 ist extrem träge (360/2 = 180 frames = 3 sekunden für volle Drehung)
+# Versuch 4-6 für agileres Verhalten
+SEEKER_MAX_TURN_DEGREES_PER_FRAME = 2
+
+# Wie schnell sich seine Geschwindigkeit ändern kann (Pixel/Frame²)
+SEEKER_ACCELERATION = 0.1
+
+# Ab welcher Distanz zum Spieler er anfängt vorsichtiger zu drehen
+SEEKER_SLOWDOWN_RADIUS = 200
+
+
+# XP Shard
+XP_SHARD_WIDTH = 7
+XP_SHARD_HEIGHT = 14
+XP_SHARD_COLOR = (128, 255, 128)
+XP_SHARD_PICKUP_RANGE = 150
+XP_SHARD_SCATTER_RANGE = 60
+XP_SHARD_SCATTER_TIME = 60 # frames
+XP_SHARD_DROP_MOVEMENT_SPEED = 3
+XP_SHARD_COLLECT_MOVEMENT_SPEED = 5
+XP_VALUE_PLACEHOLDER = 3

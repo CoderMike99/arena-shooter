@@ -4,7 +4,7 @@ from sprites.entity import Entity
 from sprites.projectile import Projectile
 from abc import ABC, abstractmethod
 from settings import *
-from utils import direction_to
+from utils import direction_to, normalize_angle
 
 class Enemy(Entity):
     def __init__(self, damage, health_points, max_health_points, position, armor, attack_speed, movement_speed, size, color):
@@ -65,7 +65,6 @@ class Chaser(Enemy):
         pygame.draw.rect(screen, self.color, self.hitbox)
         self.draw_health_bar(screen)
 
-
 class Shooter(Enemy):
     def __init__(self, shoot_interval = SHOOTER_SHOOT_INTERVAL):
         super().__init__(damage=SHOOTER_DAMAGE,
@@ -125,47 +124,67 @@ class Shooter(Enemy):
 
 class Seeker(Enemy):
     def __init__(self,
-                 max_turn_angle=SEEKER_MAX_TURN_ANGLE,
-                 min_movement_speed = SEEKER_MIN_MOVEMENT_SPEED):
+                 slowdown_radius = SEEKER_SLOWDOWN_RADIUS,
+                 min_speed = SEEKER_MIN_SPEED,
+                 max_speed = SEEKER_MAX_SPEED,
+                 acceleration = SEEKER_ACCELERATION,
+                 max_turn_angle = SEEKER_MAX_TURN_DEGREES_PER_FRAME):
         super().__init__(damage=SEEKER_DAMAGE,
                          health_points=SEEKER_HEALTH_POINTS,
                          max_health_points=SEEKER_MAX_HEALTH_POINTS,
                          position=Enemy.get_random_spawn_position(SEEKER_SIZE),
                          armor=SEEKER_ARMOR,
                          attack_speed=SEEKER_ATTACK_SPEED,
-                         movement_speed=SEEKER_MOVEMENT_SPEED,
+                         movement_speed=SEEKER_MAX_SPEED,
                          size=SEEKER_SIZE,
                          color=SEEKER_COLOR)
         
+        self.slowdown_radius = slowdown_radius
+        self.min_speed = min_speed
+        self.max_speed = max_speed
+        self.acceleration = acceleration
         self.velocity = pygame.math.Vector2(self.movement_speed, 0).rotate(random.uniform(0, 360))
         self.max_turn_angle = max_turn_angle
-        self.current_speed = min_movement_speed
+        self.current_speed = min_speed
 
     def update(self, player_pos):
+        # 1. Wo soll ich hin?
         target_direction = direction_to(self.position, player_pos)
-        angle_to_target = self.velocity.angle_to(target_direction)
-        angle = max(-self.max_turn_angle, min(self.max_turn_angle, angle_to_target))
-
-
-        # in update():
-        # Zielgeschwindigkeit basierend auf Kurve
-        target_speed = self.movement_speed * (1 - (abs(angle) / self.max_turn_angle) * 0.5)
-
-        # Geschwindigkeit nur langsam anpassen
-        max_accel = 0.1  # z.B. 0.1 px/frame²
-        if self.current_speed < target_speed:
-            self.current_speed = min(target_speed, self.current_speed + max_accel)
-        else:
-            self.current_speed = max(target_speed, self.current_speed - max_accel)
-
-        self.velocity = self.velocity.rotate(angle).normalize() * self.current_speed
         
+        # 2. Wie weit muss ich mich drehen, um dorthin zu zeigen?
+        self.angle_to_target = self.velocity.angle_to(target_direction)
+        self.angle_to_target = normalize_angle(self.angle_to_target)  # auslagern!
+        
+        # 3. Wie nah bin ich am Ziel?
+        distance = (player_pos - self.position).length()
+        
+        # 4. Wie aggressiv darf ich JETZT drehen? (langsamer wenn nah)
+        if distance < self.slowdown_radius:
+            effective_max_turn = self.max_turn_angle * (distance / self.slowdown_radius)
+        else:
+            effective_max_turn = self.max_turn_angle
+        
+        # 5. Tatsächlicher Drehwinkel diesen Frame (begrenzt)
+        turn_this_frame = max(-effective_max_turn, min(effective_max_turn, self.angle_to_target))
+        
+        # 6. Wie schnell will ich fliegen? (langsamer in scharfen Kurven)
+        turn_severity = 0.5 * abs(turn_this_frame) / self.max_turn_angle  # 0 = gerade, 1 = max Kurve
+        target_speed = self.max_speed - (self.max_speed - self.min_speed) * turn_severity
+        
+        # 7. Geschwindigkeit graduell anpassen (keine Sprünge)
+        if self.current_speed < target_speed:
+            self.current_speed = min(target_speed, self.current_speed + self.acceleration)
+        else:
+            self.current_speed = max(target_speed, self.current_speed - self.acceleration)
+        
+        # 8. Velocity aktualisieren: drehen + neue Geschwindigkeit
+        self.velocity = self.velocity.rotate(turn_this_frame).normalize() * self.current_speed
+        
+        # 9. Bewegen
         self.position += self.velocity
-
         self.hitbox.center = self.position
-
+        
         return self.health_points > 0
-    
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.hitbox)

@@ -23,6 +23,7 @@ class Entity(ABC):
     
     def take_damage(self, amount):
         self.health_points -= max(0, amount - self.armor)
+        return self.health_points > 0
     
 
     def draw_health_bar(self, screen):

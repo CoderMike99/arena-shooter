@@ -13,6 +13,10 @@ class SpawnManager:
         self.intervals = {"Chaser": CHASER_INITIAL_SPAWN_INTERVAL,
                           "Shooter": SHOOTER_INITIAL_SPAWN_INTERVAL,
                           "Seeker": SEEKER_INITIAL_SPAWN_INTERVAL}
+        
+        self.spawnrules = {"Chaser": False,
+                          "Shooter": False,
+                          "Seeker": True}
 
     def update(self) -> list[Enemy]:
         self.current_difficulty += 0.001
@@ -20,7 +24,7 @@ class SpawnManager:
 
         for enemy_type in self.timers:
             self.timers[enemy_type] += 1
-            if self.timers[enemy_type] >= self.intervals[enemy_type]:
+            if self.timers[enemy_type] >= self.intervals[enemy_type] and self.spawnrules[enemy_type]:
                 self.timers[enemy_type] = 0
                 match enemy_type:
                     case "Chaser":

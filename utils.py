@@ -1,6 +1,6 @@
 import math
 import pygame
-
+import random
 
 
 # Returns direction tuple of right joystick, or left joystick if right is idle
@@ -21,6 +21,17 @@ def joystick_direction(joystick):
 def normalize_vector(vector_x, vector_y):
     length = math.sqrt(vector_x ** 2 + vector_y ** 2)
     return (vector_x / length, vector_y / length) if length != 0 else (0,0)
+
+def random_unit_vector():
+    return pygame.math.Vector2(random.uniform(-1,1), random.uniform(-1,1)).normalize()
+
+def normalize_angle(angle):
+    """Normalisiert einen Winkel auf den Bereich [-180, 180]."""
+    while angle > 180:
+        angle -= 360
+    while angle < -180:
+        angle += 360
+    return angle
 
 def direction_to(from_pos, to_pos) -> pygame.math.Vector2:
     if to_pos != from_pos:
