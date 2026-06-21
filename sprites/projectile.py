@@ -19,6 +19,8 @@ class Projectile:
         )
         self.hitbox.center = self.position
         self.damaged_targets = []
+        self.image = pygame.image.load("assets/images/bullet160_glow.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (size*8, size*8))
 
     def update(self):    
         self.position += self.velocity * self.speed
@@ -30,3 +32,5 @@ class Projectile:
             
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, self.position, self.size)
+        rect = self.image.get_rect(center=self.hitbox.center)
+        screen.blit(self.image, rect)

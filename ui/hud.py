@@ -26,7 +26,7 @@ def draw_bar(screen, x, y, width, height, value, max_value, fill_color, label, l
     # Hintergrund
     pygame.draw.rect(screen, BAR_BG_COLOR, (x, y, width, height), border_radius=4)
     # Füllung
-    fill_width = int(width * max(0, value) / max_value)
+    fill_width = int(width * min(1, max(0, value) / max_value))
     if fill_width > 0:
         pygame.draw.rect(screen, fill_color, (x, y, fill_width, height), border_radius=4)
     # Label links

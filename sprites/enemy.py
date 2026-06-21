@@ -140,8 +140,8 @@ class Seeker(Enemy):
                          color=SEEKER_COLOR)
         
 
-        self.original_image = pygame.image.load("assets/images/missile_cut.png").convert_alpha()
-        self.original_image = pygame.transform.scale(self.original_image, (SEEKER_SIZE*2, SEEKER_SIZE*2))
+        self.original_image = pygame.image.load("assets/images/missile.png").convert_alpha()
+        self.original_image = pygame.transform.scale(self.original_image, (SEEKER_SIZE*3, SEEKER_SIZE*3))
         self.image = self.original_image
         self.slowdown_radius = slowdown_radius
         self.min_speed = min_speed

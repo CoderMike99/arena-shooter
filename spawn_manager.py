@@ -14,8 +14,8 @@ class SpawnManager:
                           "Shooter": SHOOTER_INITIAL_SPAWN_INTERVAL,
                           "Seeker": SEEKER_INITIAL_SPAWN_INTERVAL}
         
-        self.spawnrules = {"Chaser": False,
-                          "Shooter": False,
+        self.spawnrules = {"Chaser": True,
+                          "Shooter": True,
                           "Seeker": True}
 
     def update(self) -> list[Enemy]:

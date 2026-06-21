@@ -1,7 +1,7 @@
 import pygame
 from sprites.entity import Entity
 from sprites.projectile import Projectile
-from settings import PLAY_AREA_HEIGHT, WINDOW_WIDTH, PLAYER_MAX_HEALTH_POINTS, PLAYER_DAMAGE, PLAYER_SIZE, PLAYER_ARMOR, PLAYER_ATTACK_SPEED, PLAYER_MOVEMENT_SPEED, PLAYER_COLOR, DASH_COOLDOWN_MAX, DASH_DURATION, DASH_RANGE
+from settings import PLAY_AREA_HEIGHT, WINDOW_WIDTH, PLAYER_MAX_HEALTH_POINTS, PLAYER_DAMAGE, PLAYER_SIZE, PLAYER_ARMOR, PLAYER_ATTACK_SPEED, PLAYER_MOVEMENT_SPEED, PLAYER_PROJECTILE_SIZE, PLAYER_COLOR, DASH_COOLDOWN_MAX, DASH_DURATION, DASH_RANGE
 from utils import normalize_vector, apply_deadzone, dash_delta
 
 class Player(Entity):
@@ -89,7 +89,7 @@ class Player(Entity):
         if self.attack_cooldown_remaining <= 0 and direction is not None:
             self.attack_cooldown_remaining = self.attack_cooldown_max
             return Projectile(self.getPosition(), velocity=direction, 
-                            faction="player", damage=self.damage, color=(255,165,0))
+                            faction="player", damage=self.damage, color=(255,165,0), size=PLAYER_PROJECTILE_SIZE)
         return None
 
     def dash(self, joystick=None):

@@ -49,7 +49,7 @@ def dash_sigmoid(t, duration):
     x = (t / duration - 0.5) * 10
     return 1 / (1 + math.exp(-x))
 
-def dash_curve(t, duration, steepness=3):
+def dash_curve(t, duration, steepness=1):
     x = t / duration
     return (1 - math.exp(-steepness * x)) / (1 - math.exp(-steepness))
 

@@ -1,6 +1,6 @@
 import pygame
 from utils import random_unit_vector, direction_to
-from settings import XP_SHARD_WIDTH, XP_SHARD_HEIGHT, XP_SHARD_COLOR, XP_SHARD_SCATTER_RANGE, XP_SHARD_SCATTER_TIME, XP_SHARD_PICKUP_RANGE, XP_SHARD_DROP_MOVEMENT_SPEED, XP_SHARD_COLLECT_MOVEMENT_SPEED
+from settings import XP_SHARD_WIDTH, XP_SHARD_HEIGHT, XP_SHARD_COLOR, XP_SHARD_SIZE, XP_SHARD_SCATTER_RANGE, XP_SHARD_SCATTER_TIME, XP_SHARD_PICKUP_RANGE, XP_SHARD_DROP_MOVEMENT_SPEED, XP_SHARD_COLLECT_MOVEMENT_SPEED
 
 
 class XPShard():
@@ -8,15 +8,18 @@ class XPShard():
                 value,
                 position=pygame.math.Vector2(0,0),
                 color = XP_SHARD_COLOR,
+                size = XP_SHARD_SIZE,
                 drop_movement_speed = XP_SHARD_DROP_MOVEMENT_SPEED,
                 collect_movement_speed = XP_SHARD_COLLECT_MOVEMENT_SPEED,
                 pickup_range = XP_SHARD_PICKUP_RANGE,
                 scatter_range = XP_SHARD_SCATTER_RANGE,
                 scatter_time = XP_SHARD_SCATTER_TIME):
+        
         self.hitbox = pygame.Rect(0, 0, XP_SHARD_WIDTH, XP_SHARD_HEIGHT)
         self.value = value
         self.position = position
         self.color = color
+        self.size = size
         self.drop_movement_speed = drop_movement_speed
         self.collect_movement_speed = collect_movement_speed
         self.pickup_range = pickup_range
@@ -24,7 +27,10 @@ class XPShard():
         self.is_collected = False
         self.scatter_time = scatter_time
         self.scatter_velocity = random_unit_vector() * scatter_range / scatter_time
-    
+        
+        self.image = pygame.image.load("assets/images/xp_crystal_160.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (size*1.5, size*1.5))
+
     def update(self, player_pos):
         distance = (player_pos - self.position).length()
         direction = direction_to(self.position, player_pos)
@@ -40,7 +46,7 @@ class XPShard():
 
         if self.is_collected:
             self.position += direction * self.collect_movement_speed
-            self.collect_movement_speed += 0.05
+            self.collect_movement_speed *= 1.1
 
         self.hitbox.center = self.position
         
@@ -49,3 +55,5 @@ class XPShard():
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.hitbox)
+        rect = self.image.get_rect(center=self.hitbox.center)
+        screen.blit(self.image, rect)

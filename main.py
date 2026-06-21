@@ -40,8 +40,8 @@ enemies: list[Enemy] = []
 damage_numbers: list[DamageNumber] = []
 xp_shards: list[XPShard] = []
 
-#for _ in range(200):
-#    xp_shards.append(XPShard(XP_VALUE_PLACEHOLDER, position=pygame.math.Vector2(random.randint(20, WINDOW_WIDTH-20), random.randint(20, WINDOW_HEIGHT-20))))
+for _ in range(300):
+    xp_shards.append(XPShard(XP_VALUE_PLACEHOLDER, position=pygame.math.Vector2(random.randint(20, WINDOW_WIDTH-20), random.randint(20, WINDOW_HEIGHT-20))))
 
 
 font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 20)
@@ -50,6 +50,8 @@ dmg_number_font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 10)
 debug_font = pygame.font.SysFont("Courier New", 14)
 
 spawn_manager = SpawnManager()
+
+background = pygame.image.load("assets/images/lab_background_1920x960.png").convert()
 
 def set_state(new_state):
     global state, previous_state
@@ -117,6 +119,7 @@ def update_game_logic(input_state):
     player1.move(keys, joystick)
     player1.update(input_state, joystick)
 
+    # Creating enemy projectiles and dealing melee damage
     for enemy in enemies:
         if isinstance(enemy, Shooter):
             projectiles += enemy.new_projectiles
@@ -126,7 +129,8 @@ def update_game_logic(input_state):
                 enemy.attack_cooldown_remaining = enemy.attack_cooldown_max
                 player1.take_damage(enemy.damage)
                 damage_numbers.append(DamageNumber(font=dmg_number_font, position=player1.position, number=int(enemy.damage - player1.armor)))
-            
+
+    # dealing projectile damage     
     for projectile in projectiles:
         targets = enemies if projectile.faction == "player" else [player1]
         for target in targets:
@@ -160,7 +164,7 @@ def update_game_logic(input_state):
 
 def draw_playing():
     """Alles zeichnen im playing State."""
-    screen.fill((30, 30, 30))
+    screen.blit(background, (0, 0))
     
     draw_text(screen, font, f"Score: {score}", (255, 255, 255), WINDOW_WIDTH // 2, 20, anchor="midtop")
     draw_text(screen, debug_font, f"Enemies: {len(enemies)}", (150, 150, 150), 10, 10, anchor="topleft")
