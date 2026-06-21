@@ -135,13 +135,20 @@ def update_game_logic(input_state):
                 projectile.damaged_targets.append(target)
                 if not target.take_damage(projectile.damage):
                     xp_shards.append(XPShard(XP_VALUE_PLACEHOLDER, position=target.position))
-                    player1.get_xp(XP_VALUE_PLACEHOLDER)
                 damage_numbers.append(DamageNumber(font=dmg_number_font, position=target.position, number=int(projectile.damage - target.armor)))
 
     
     projectiles[:] = [p for p in projectiles if p.update()]
     damage_numbers[:] = [n for n in damage_numbers if n.update()]
-    xp_shards[:] = [s for s in xp_shards if s.update(player_pos=player1.position)]
+    
+    # XP-Shard management
+    uncollected_xp_shards = []
+    for shard in xp_shards:
+        if shard.update(player1.position):
+            uncollected_xp_shards.append(shard)
+        else:
+            player1.get_xp(shard.value)
+    xp_shards[:] = uncollected_xp_shards
 
     kills = len(enemies)
     enemies[:] = [e for e in enemies if e.update(player1.getPosition())]

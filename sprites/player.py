@@ -62,7 +62,7 @@ class Player(Entity):
 
     def get_xp(self, xp_value):
         self.xp += xp_value
-        print(f"XP erhöht um {xp_value} auf {self.xp}")
+        #print(f"XP erhöht um {xp_value} auf {self.xp}")
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.hitbox)

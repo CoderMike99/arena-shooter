@@ -139,6 +139,10 @@ class Seeker(Enemy):
                          size=SEEKER_SIZE,
                          color=SEEKER_COLOR)
         
+
+        self.original_image = pygame.image.load("assets/images/missile_cut.png").convert_alpha()
+        self.original_image = pygame.transform.scale(self.original_image, (SEEKER_SIZE*2, SEEKER_SIZE*2))
+        self.image = self.original_image
         self.slowdown_radius = slowdown_radius
         self.min_speed = min_speed
         self.max_speed = max_speed
@@ -187,5 +191,9 @@ class Seeker(Enemy):
         return self.health_points > 0
 
     def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.hitbox)
+        #pygame.draw.rect(screen, self.color, self.hitbox)
         self.draw_health_bar(screen)
+        angle = self.velocity.angle_to(pygame.math.Vector2(1, 0))  # Winkel zur "rechts" Richtung
+        self.image = pygame.transform.rotate(self.original_image, angle)
+        rect = self.image.get_rect(center=self.hitbox.center)
+        screen.blit(self.image, rect)

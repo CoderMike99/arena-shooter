@@ -102,7 +102,7 @@ def draw_hud(screen, player, score, game_time, font, font_small):
     xp_placeholder = 60
     xp_max_placeholder = 100
     draw_bar(screen, left_x, PLAY_AREA_HEIGHT + 58, bar_width, bar_height,
-             xp_placeholder, xp_max_placeholder,
+             player.xp, 100,
              (155, 89, 182), "XP", (155, 89, 182), font_small)
 
     # Level Platzhalter
