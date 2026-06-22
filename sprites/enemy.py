@@ -49,6 +49,9 @@ class Chaser(Enemy):
                          movement_speed=CHASER_MOVEMENT_SPEED,
                          size=CHASER_SIZE,
                          color=CHASER_COLOR)
+        
+        self.image = pygame.image.load("assets/images/enemy_chaser_160.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (CHASER_SIZE*3.5, CHASER_SIZE*3.5))
 
     def update(self, player_pos):
         direction = direction_to(self.position, player_pos)
@@ -64,6 +67,8 @@ class Chaser(Enemy):
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.hitbox)
         self.draw_health_bar(screen)
+        rect = self.image.get_rect(center=self.hitbox.center)
+        screen.blit(self.image, rect)
 
 class Shooter(Enemy):
     def __init__(self, shoot_interval = SHOOTER_SHOOT_INTERVAL):
@@ -77,6 +82,8 @@ class Shooter(Enemy):
                          size=SHOOTER_SIZE,
                          color=SHOOTER_COLOR)
         
+        self.image = pygame.image.load("assets/images/enemy_shooter_160.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (SHOOTER_SIZE*3.5, SHOOTER_SIZE*3.5))
         self.new_projectiles = []   # newly generated projectiles
         self.in_position = False # if shooter in position and ready to shoot
 
@@ -109,6 +116,8 @@ class Shooter(Enemy):
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.hitbox)
         self.draw_health_bar(screen)
+        rect = self.image.get_rect(center=self.hitbox.center)
+        screen.blit(self.image, rect)
 
     def shoot(self, direction):
         self.new_projectiles = []   # Jeden Frame leeren      
@@ -140,8 +149,8 @@ class Seeker(Enemy):
                          color=SEEKER_COLOR)
         
 
-        self.original_image = pygame.image.load("assets/images/missile.png").convert_alpha()
-        self.original_image = pygame.transform.scale(self.original_image, (SEEKER_SIZE*3, SEEKER_SIZE*3))
+        self.original_image = pygame.image.load("assets/images/enemy_seeker_schweif_160.png").convert_alpha()
+        self.original_image = pygame.transform.scale(self.original_image, (SEEKER_SIZE*6, SEEKER_SIZE*6))
         self.image = self.original_image
         self.slowdown_radius = slowdown_radius
         self.min_speed = min_speed
@@ -193,7 +202,9 @@ class Seeker(Enemy):
     def draw(self, screen):
         #pygame.draw.rect(screen, self.color, self.hitbox)
         self.draw_health_bar(screen)
-        angle = self.velocity.angle_to(pygame.math.Vector2(1, 0))  # Winkel zur "rechts" Richtung
+        angle = self.velocity.angle_to(pygame.math.Vector2(0, -1))  # Winkel zur "rechts" Richtung
         self.image = pygame.transform.rotate(self.original_image, angle)
         rect = self.image.get_rect(center=self.hitbox.center)
         screen.blit(self.image, rect)
+
+   

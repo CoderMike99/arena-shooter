@@ -55,4 +55,8 @@ class Entity(ABC):
         pygame.draw.rect(screen, self.color, self.hitbox)
         self.draw_health_bar(screen)
 
+    def _load_spritesheet(self, path, frame_width, frame_height):
+        sheet = pygame.image.load(path).convert_alpha()
+        columns = sheet.get_width() // frame_width
+        return [sheet.subsurface((i * frame_width, 0, frame_width, frame_height)) for i in range(columns)]
     

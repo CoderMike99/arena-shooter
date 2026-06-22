@@ -1,8 +1,9 @@
 import pygame
 from sprites.entity import Entity
 from sprites.projectile import Projectile
-from settings import PLAY_AREA_HEIGHT, WINDOW_WIDTH, PLAYER_MAX_HEALTH_POINTS, PLAYER_DAMAGE, PLAYER_SIZE, PLAYER_ARMOR, PLAYER_ATTACK_SPEED, PLAYER_MOVEMENT_SPEED, PLAYER_PROJECTILE_SIZE, PLAYER_COLOR, DASH_COOLDOWN_MAX, DASH_DURATION, DASH_RANGE
+from settings import PLAY_AREA_HEIGHT, WINDOW_WIDTH, PLAYER_MAX_HEALTH_POINTS, PLAYER_DAMAGE, PLAYER_SIZE, PLAYER_ARMOR, PLAYER_ATTACK_SPEED, PLAYER_MOVEMENT_SPEED, PLAYER_PROJECTILE_SIZE, PLAYER_PROJECTILE_SPEED, PLAYER_COLOR, DASH_COOLDOWN_MAX, DASH_DURATION, DASH_RANGE
 from utils import normalize_vector, apply_deadzone, dash_delta
+from animation import Animation
 
 class Player(Entity):
     def __init__(self, 
@@ -40,6 +41,9 @@ class Player(Entity):
         self.dash_cooldown_max = DASH_COOLDOWN_MAX
         self.dash_cooldown_remaining = 0
 
+        # Animation
+        self.load_animations()
+        self.animations = Animation(self.idle_frames, 30)
     
     def update(self, input_state: dict, joystick=None):
         self.hitbox.center = self.position
@@ -54,6 +58,8 @@ class Player(Entity):
         # Continues ongoing dash
         if self.dash_active:
             self.dash(joystick)
+
+        self.animations.update()
         
 
 
@@ -64,9 +70,17 @@ class Player(Entity):
         self.xp += xp_value
         #print(f"XP erhöht um {xp_value} auf {self.xp}")
 
-    def draw(self, screen):
+    """ def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.hitbox)
-        self.draw_health_bar(screen)
+        self.draw_health_bar(screen) """
+
+    def draw(self, screen):
+        if self.animations:  # nur wenn überhaupt Animationen vorhanden sind
+            image = self.animations.get_current_frame()
+            image = pygame.transform.scale(image, (self.size*3, self.size*3))  # oder eigene Breite/Höhe
+            screen.blit(image, self.hitbox)
+        else:
+            pygame.draw.rect(screen, self.color, self.hitbox)
 
     def move(self, keys, joystick=None):
         if keys[self.controls["right"]] and self.position.x < WINDOW_WIDTH - self.size:
@@ -89,7 +103,7 @@ class Player(Entity):
         if self.attack_cooldown_remaining <= 0 and direction is not None:
             self.attack_cooldown_remaining = self.attack_cooldown_max
             return Projectile(self.getPosition(), velocity=direction, 
-                            faction="player", damage=self.damage, color=(255,165,0), size=PLAYER_PROJECTILE_SIZE)
+                            faction="player", damage=self.damage, color=(255,165,0), size=PLAYER_PROJECTILE_SIZE, speed=PLAYER_PROJECTILE_SPEED)
         return None
 
     def dash(self, joystick=None):
@@ -111,3 +125,6 @@ class Player(Entity):
             self.dash_active = False
             self.dash_progress = 0
 
+
+    def load_animations(self):
+        self.idle_frames = self._load_spritesheet("assets/images/office_guy_black_front_idle.png", 18, 24)

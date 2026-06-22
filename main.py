@@ -40,8 +40,8 @@ enemies: list[Enemy] = []
 damage_numbers: list[DamageNumber] = []
 xp_shards: list[XPShard] = []
 
-for _ in range(300):
-    xp_shards.append(XPShard(XP_VALUE_PLACEHOLDER, position=pygame.math.Vector2(random.randint(20, WINDOW_WIDTH-20), random.randint(20, WINDOW_HEIGHT-20))))
+#for _ in range(300):
+#    xp_shards.append(XPShard(XP_VALUE_PLACEHOLDER, position=pygame.math.Vector2(random.randint(20, WINDOW_WIDTH-20), random.randint(20, WINDOW_HEIGHT-20))))
 
 
 font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 20)
