@@ -164,7 +164,8 @@ def update_game_logic(input_state):
 
 def draw_playing():
     """Alles zeichnen im playing State."""
-    screen.blit(background, (0, 0))
+    screen.fill((30,30,30))
+    #screen.blit(background, (0, 0))
     
     draw_text(screen, font, f"Score: {score}", (255, 255, 255), WINDOW_WIDTH // 2, 20, anchor="midtop")
     draw_text(screen, debug_font, f"Enemies: {len(enemies)}", (150, 150, 150), 10, 10, anchor="topleft")

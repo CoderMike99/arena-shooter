@@ -70,17 +70,15 @@ class Player(Entity):
         self.xp += xp_value
         #print(f"XP erhöht um {xp_value} auf {self.xp}")
 
-    """ def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.hitbox)
-        self.draw_health_bar(screen) """
+
 
     def draw(self, screen):
-        if self.animations:  # nur wenn überhaupt Animationen vorhanden sind
+        """ if self.animations:  # nur wenn überhaupt Animationen vorhanden sind
             image = self.animations.get_current_frame()
-            image = pygame.transform.scale(image, (self.size*3, self.size*3))  # oder eigene Breite/Höhe
+            image = pygame.transform.scale(image, (self.size*2, self.size*2))  # oder eigene Breite/Höhe
             screen.blit(image, self.hitbox)
-        else:
-            pygame.draw.rect(screen, self.color, self.hitbox)
+        else: """
+        pygame.draw.rect(screen, self.color, self.hitbox)
 
     def move(self, keys, joystick=None):
         if keys[self.controls["right"]] and self.position.x < WINDOW_WIDTH - self.size:
